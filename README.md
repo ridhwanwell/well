@@ -1,50 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MQTT Web Client</title>
-  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Potensiometer Value</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        #potValue {
+            font-size: 24px;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
-  <h2>MQTT Web Client - Potentiometer Data</h2>
-  <div>
-    <h3>Data Potensiometer:</h3>
-    <p id="potentiometerValue">Waiting for data...</p>
-  </div>
+    <h1>Nilai Potensiometer</h1>
+    <div id="potValue">0</div>
 
-  <script>
-    // MQTT connection settings
-    const mqttBroker = 'wss://broker.hivemq.com:8000/mqtt';  // Broker HiveMQ WebSocket
-    const clientId = 'web-client-1';  // Unique client ID
-    const topic = 'sensor/potentiometer';  // Topic yang digunakan oleh ESP32
+    <script>
+        // Ganti dengan informasi broker MQTT Anda
+        const mqttServer = 'ws://broker.hivemq.com:8000/mqtt'; // HiveMQ WebSocket
+        const potensiometerTopic = 'esp32/potensiometer';
 
-    // Membuat koneksi MQTT ke broker
-    const client = mqtt.connect(mqttBroker, {
-      clientId: clientId,
-      clean: true,
-      connectTimeout: 4000,
-      reconnectPeriod: 1000,
-    });
+        // Koneksi ke broker MQTT
+        const client = mqtt.connect(mqttServer);
 
-    // Menampilkan pesan ketika berhasil terkoneksi
-    client.on('connect', function () {
-      console.log('Connected to MQTT broker!');
-      // Subscribe ke topic 'sensor/potentiometer' untuk menerima data
-      client.subscribe(topic, function (err) {
-        if (err) {
-          console.log('Failed to subscribe:', err);
-        } else {
-          console.log('Subscribed to topic:', topic);
-        }
-      });
-    });
+        client.on('connect', function () {
+            console.log('Connected to MQTT broker');
+            client.subscribe(potensiometerTopic, function (err) {
+                if (!err) {
+                    console.log('Subscribed to ' + potensiometerTopic);
+                }
+            });
+        });
 
-    // Ketika menerima pesan baru dari topic
-    client.on('message', function (topic, message) {
-      const potValue = message.toString();  // Pesan yang diterima dalam format string
-      document.getElementById('potentiometerValue').innerText = 'Potentiometer Value: ' + potValue;
-    });
-  </script>
+        client.on('message', function (topic, message) {
+            // message adalah Buffer, kita perlu mengubahnya menjadi string
+            const potValue = message.toString();
+            document.getElementById('potValue').innerText = potValue;
+        });
+    </script>
 </body>
 </html>
